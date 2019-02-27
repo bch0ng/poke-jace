@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.16" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina5_9" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.12"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -9,16 +13,78 @@
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="pokejace" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <searchBar contentMode="redraw" searchBarStyle="minimal" placeholder="Search" translatesAutoresizingMaskIntoConstraints="NO" id="kSX-ua-2Xi">
+                                <rect key="frame" x="0.0" y="79" width="375" height="56.333333333333343"/>
+                                <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" enablesReturnKeyAutomatically="YES"/>
+                                <scopeButtonTitles>
+                                    <string>Title</string>
+                                    <string>Title</string>
+                                </scopeButtonTitles>
+                            </searchBar>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="g0M-Zm-apd">
+                                <rect key="frame" x="0.0" y="144" width="375" height="634"/>
+                                <subviews>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="j8w-fM-64z">
+                                        <rect key="frame" x="0.0" y="0.0" width="375" height="634"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <prototypes>
+                                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="pokemon" id="FDB-Pm-w46">
+                                                <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                                <autoresizingMask key="autoresizingMask"/>
+                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="FDB-Pm-w46" id="zBT-As-76b">
+                                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43.666666666666664"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                </tableViewCellContentView>
+                                            </tableViewCell>
+                                        </prototypes>
+                                    </tableView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="bottom" secondItem="j8w-fM-64z" secondAttribute="bottom" id="6qS-Th-v5i"/>
+                                    <constraint firstItem="j8w-fM-64z" firstAttribute="top" secondItem="g0M-Zm-apd" secondAttribute="top" id="HLv-vx-Efi"/>
+                                    <constraint firstItem="j8w-fM-64z" firstAttribute="centerY" secondItem="g0M-Zm-apd" secondAttribute="centerY" id="J59-gW-ovY"/>
+                                    <constraint firstAttribute="trailing" secondItem="j8w-fM-64z" secondAttribute="trailing" id="h5p-pE-ehL"/>
+                                    <constraint firstItem="j8w-fM-64z" firstAttribute="leading" secondItem="g0M-Zm-apd" secondAttribute="leading" id="qoh-3a-S3M"/>
+                                    <constraint firstItem="j8w-fM-64z" firstAttribute="centerX" secondItem="g0M-Zm-apd" secondAttribute="centerX" id="uxC-IW-BsN"/>
+                                </constraints>
+                            </scrollView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Poké Jacé" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6CH-rN-AGW">
+                                <rect key="frame" x="92" y="44" width="191" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="qvy-5y-8t5"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="24"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="6CH-rN-AGW" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="92" id="1JD-xT-S85"/>
+                            <constraint firstItem="g0M-Zm-apd" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="35A-Oi-oWd"/>
+                            <constraint firstItem="g0M-Zm-apd" firstAttribute="top" secondItem="kSX-ua-2Xi" secondAttribute="bottom" constant="8.6699999999999999" id="JM8-S6-wLc"/>
+                            <constraint firstItem="kSX-ua-2Xi" firstAttribute="top" secondItem="6CH-rN-AGW" secondAttribute="bottom" constant="15" id="Pqa-wG-zH7"/>
+                            <constraint firstItem="g0M-Zm-apd" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="Ywr-u2-1ID"/>
+                            <constraint firstItem="6CH-rN-AGW" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="a8P-cz-Qfm"/>
+                            <constraint firstItem="kSX-ua-2Xi" firstAttribute="top" secondItem="6CH-rN-AGW" secondAttribute="bottom" constant="15" id="bnn-QH-aMZ"/>
+                            <constraint firstItem="g0M-Zm-apd" firstAttribute="top" secondItem="kSX-ua-2Xi" secondAttribute="bottom" constant="8.6699999999999999" id="et3-dq-jHe"/>
+                            <constraint firstItem="g0M-Zm-apd" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" constant="144" id="iu0-SA-NlD"/>
+                            <constraint firstItem="kSX-ua-2Xi" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="lPO-gP-pFV"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="6CH-rN-AGW" secondAttribute="trailing" constant="92" id="nz2-DU-TQy"/>
+                            <constraint firstItem="kSX-ua-2Xi" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="uaY-KY-zF3"/>
+                            <constraint firstItem="g0M-Zm-apd" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="way-TO-gpS"/>
+                        </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="140" y="132.26600985221674"/>
         </scene>
     </scenes>
 </document>
