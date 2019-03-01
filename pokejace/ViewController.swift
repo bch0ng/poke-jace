@@ -7,11 +7,15 @@
 //
 
 import UIKit
+import Foundation
+import CoreData
 
 class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UISearchBarDelegate, UICollectionViewDataSource {
     
-    struct Pokemon: Codable {
+    struct Pokemon : Codable {
+        let id: Int
         let name: String
+        let hasImage: Bool
         var caught: Bool
         var shinyExists: Bool
         var caughtShiny: Bool
@@ -20,10 +24,11 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     }
     
     var data = [Pokemon]()
+    var pokemonNames = [String]()
     
     var filteredData: [Pokemon]!
     
-    func parsePokemonListJSON () {
+    func parsePokemonListJSON(appDelegate: AppDelegate, managedContext: NSManagedObjectContext) {
         guard let url = URL(string: "https://pokeapi.co/api/v2/pokemon/?offset=0&limit=493") else {return}
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let dataResponse = data,
@@ -43,10 +48,13 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
                     return
                 }
                 for i in 0 ..< pokemonList.count {
-                    let pokemon = Pokemon(name: pokemonList[i]["name"] as! String, caught: false, shinyExists: false, caughtShiny: false, haveLucky: false, havePerfect: false)
+                    let pokemon = Pokemon(id: (i + 1), name: (pokemonList[i]["name"] as! String).replacingOccurrences(of: "-", with: " ", options: .literal, range: nil).capitalized, hasImage: (UIImage(named: String(i + 1)) != nil), caught: false, shinyExists: false, caughtShiny: false, haveLucky: false, havePerfect: false)
                     self.data.append(pokemon)
                 }
-                self.filteredData = self.data
+                // Meltan
+                self.data.append(Pokemon(id: 808, name: "Meltan", hasImage: true, caught: false, shinyExists: true, caughtShiny: false, haveLucky: false, havePerfect: false))
+                // Melmetal
+                self.data.append(Pokemon(id: 809, name: "Melmetal", hasImage: true, caught: false, shinyExists: true, caughtShiny: false, haveLucky: false, havePerfect: false))
                 DispatchQueue.main.async {
                     self.myCollectionView.reloadData()
                 }
@@ -78,26 +86,59 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             var mapped3 = mapped2.map {
                 Int($0)!
             }
-            for i in 0 ..< mapped3.count {
+            for i in 0 ..< mapped3.count - 2 {
                 if (mapped3[i] < 808) {
                     self.data[mapped3[i] - 1].shinyExists = true
-                    if (Int.random(in: 0 ..< 3) == 0) {
-                        self.data[mapped3[i] - 1].caughtShiny = true
+
+                    /*
+                    /**
+                        TESTING CODE HERE
+                     */
+                    if (Int.random(in: 0 ..< 2) == 0) {
+                        self.data[mapped3[i] - 1].caught = true
+                        if (Int.random(in: 0 ..< 3) == 0) {
+                            self.data[mapped3[i] - 1].caughtShiny = true
+                        }
+                        if (Int.random(in: 0 ..< 3) == 0) {
+                            self.data[mapped3[i] - 1].haveLucky = true
+                        }
+                        if (Int.random(in: 0 ..< 3) == 0) {
+                            self.data[mapped3[i] - 1].havePerfect = true
+                        }
                     }
+                    /**
+                        END OF TESTING CODE HERE
+                     */
+                    */
                 }
             }
+            self.data = self.data.filter({ $0.hasImage })
+            pokemonNames = self.data.map({ $0.name })
+            
+            let pokemonMOEntity = NSEntityDescription.entity(forEntityName: "PokemonMO", in: managedContext)!
+            for item in self.data {
+                let pokemonMO = NSManagedObject(entity: pokemonMOEntity, insertInto: managedContext)
+                    pokemonMO.setValue(item.id, forKeyPath: "id")
+                    pokemonMO.setValue(item.name, forKeyPath: "name")
+                    pokemonMO.setValue(item.hasImage, forKeyPath: "hasImage")
+                    pokemonMO.setValue(item.caught, forKeyPath: "caught")
+                    pokemonMO.setValue(item.shinyExists, forKeyPath: "shinyExists")
+                    pokemonMO.setValue(item.caughtShiny, forKeyPath: "caughtShiny")
+                    pokemonMO.setValue(item.haveLucky, forKeyPath: "haveLucky")
+                    pokemonMO.setValue(item.havePerfect, forKeyPath: "havePerfect")
+            }
+            do {
+                try managedContext.save()
+            } catch let error as NSError {
+                print("Could not save. \(error), \(error.userInfo)")
+            }
+            
             self.filteredData = self.data
             self.myCollectionView.reloadData()
         } catch let error {
             print("Error: \(error)")
         }
     }
-    
-    private let infoView: UIScrollView = {
-        let view = UIScrollView()
-        //view.backgroundColor = .gray
-        return view
-    }()
     
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -109,19 +150,60 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     
     private let myCollectionView: UICollectionView = {
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+            layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         let coll = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        coll.translatesAutoresizingMaskIntoConstraints = false
-        coll.backgroundColor = .white
+            coll.translatesAutoresizingMaskIntoConstraints = false
+            coll.backgroundColor = .white
         return coll
     }()
+    
+    @objc func doneButtonAction() {
+        self.view.endEditing(true)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.parsePokemonListJSON()
+        
+        var items = [UIBarButtonItem]()
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneBtn: UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonAction))
+        let toolbar:UIToolbar = UIToolbar(frame: CGRect(x: 0, y: 0,  width: self.view.frame.size.width, height: 30))
+        items.append(flexSpace)
+        items.append(doneBtn)
+        //items.append( UIBarButtonItem(barButtonSystemItem: "Shiny", target: self, action: nil) )
+        toolbar.setItems(items, animated: false)
+            toolbar.sizeToFit()
+        
+        self.searchBar.inputAccessoryView = toolbar
+        
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let fetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "PokemonMO")
+            fetchReq.sortDescriptors = [NSSortDescriptor.init(key: "id", ascending: true)]
+            fetchReq.returnsObjectsAsFaults = false
+        let fetchRes = try! managedContext.fetch(fetchReq)
+        /*
+         for object in fetchRes {
+         let managedObjectData:NSManagedObject = object as! NSManagedObject
+         managedContext.delete(managedObjectData)
+         }
+         */
+        print(fetchRes.count)
+        if (fetchRes.count == 0) {
+            self.parsePokemonListJSON(appDelegate: appDelegate, managedContext: managedContext)
+        } else {
+            for data in fetchRes as! [NSManagedObject] {
+                //print(data.value(forKey: "name") as! String)
+                if (data.value(forKey: "hasImage") as! Bool) {
+                    self.data.append(Pokemon(id: data.value(forKey: "id") as! Int, name: data.value(forKey: "name") as! String, hasImage: true, caught: data.value(forKey: "caught") as! Bool, shinyExists: data.value(forKey: "shinyExists") as! Bool, caughtShiny: data.value(forKey: "caughtShiny") as! Bool, haveLucky: data.value(forKey: "haveLucky") as! Bool, havePerfect: data.value(forKey: "havePerfect") as! Bool))
+                }
+            }
+        }
         self.filteredData = self.data
+        pokemonNames = self.data.map({ $0.name })
+        
         view.backgroundColor = .white
-
+        self.navigationItem.title = "Poké Jacé"
         myCollectionView.dataSource = self
         myCollectionView.delegate = self
         searchBar.delegate = self
@@ -129,6 +211,12 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         view.addSubview(searchBar)
         view.addSubview(myCollectionView)
         autoLayoutSetup()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        //self.filteredData = self.data
+        myCollectionView.reloadData()
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -141,25 +229,60 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         for view in cell.subviews {
             view.removeFromSuperview()
         }
-        let textLabel = UILabel(frame: CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height))
-        textLabel.text = filteredData[indexPath.row].name
-        textLabel.textColor = filteredData[indexPath.row].shinyExists ? (filteredData[indexPath.row].caughtShiny ? .red : .blue) : .gray
-        textLabel.textAlignment = .center
-        cell.addSubview(textLabel)
-        //cell.backgroundColor = .gray
+        let pokemonImageView = UIImageView(image: UIImage(named: String(filteredData[indexPath.row].id)))
+        if(pokemonImageView.image == nil) {
+            cell.backgroundColor = .gray
+            return cell
+        }
+        pokemonImageView.frame = CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height)
+        if (!filteredData[indexPath.row].caught) {
+            pokemonImageView.image = pokemonImageView.image?.withRenderingMode(.alwaysTemplate)
+            pokemonImageView.tintColor = .gray
+        }
+        pokemonImageView.contentMode = .scaleAspectFit
+        //cell.addSubview(textLabel)
+        var iconsToDisplay = [CGImage?]()
+        if (filteredData[indexPath.row].caughtShiny) {
+            iconsToDisplay.append(UIImage(named: "shiny_icon")?.cgImage)
+        }
+        if (filteredData[indexPath.row].haveLucky) {
+            iconsToDisplay.append(UIImage(named: "lucky_icon")?.cgImage)
+        }
+        if (filteredData[indexPath.row].havePerfect) {
+            iconsToDisplay.append(UIImage(named: "perfect_icon")?.cgImage)
+        }
+        for i in 0 ..< iconsToDisplay.count {
+            let heightCalc = Double((Int(cell.bounds.size.height) - (20 * iconsToDisplay.count))) + (9 * Double((i * 2)))
+            let shinyIconLayer = CALayer()
+                shinyIconLayer.frame = CGRect(origin: CGPoint(x: cell.bounds.size.width - 20, y: CGFloat(heightCalc)), size: CGSize(width: 20, height: 20))
+                shinyIconLayer.contents = iconsToDisplay[i]
+            pokemonImageView.layer.addSublayer(shinyIconLayer)
+        }
+        cell.addSubview(pokemonImageView)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let cell = collectionView.cellForItem(at: indexPath){
-            cell.backgroundColor = .green
+        if let cell = collectionView.cellForItem(at: indexPath) {
+            //cell.backgroundColor = .green
+            //self.present(InfoViewController(), animated: true, completion: nil)
+            let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
+                infoViewController.filteredIndex = indexPath.row
+                infoViewController.pokemonName = self.filteredData[indexPath.row].name
+                infoViewController.pokemonNames = self.pokemonNames
+                //infoViewController.filteredData = self.filteredData
+                infoViewController.delegate = self
+            self.navigationController?.pushViewController(infoViewController, animated: true)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        /*
         if let cell = collectionView.cellForItem(at: indexPath){
-            cell.backgroundColor = .white
+            //cell.backgroundColor = .white
+            //myCollectionView.reloadData()
         }
+            */
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -169,30 +292,31 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         return CGSize(width: yourWidth, height: yourHeight)
     }
     
-    
-    
+    /**
+     # Search functionality:
+     ### Reserved keywords:
+     - "all"       = all pokemon
+     - "all shiny" = available shinies
+     - "shiny"     = user's caught shinies
+     - "!shiny"    = existing but not caught shinies
+     - "lucky"     = user's luckies
+     - "!lucky"    = user's non luckies
+     - "perfect"   = user's 100% IV
+     - "!perfect"  = user's non 100% IV
+     - "complete"  = user's pokemon that are shiny, lucky, and perfect
+     - "!complete" = user's pokemon that are not shiny, lucky, and perfect
+     
+     ### Planned keywords:
+     - (pokemon types)
+     */
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         filteredData = searchText.isEmpty || searchText.lowercased() == "all" ? data : data.filter { (Pokemon) -> Bool in
-            /**
-                # Search functionality:
-                    ### Reserved keywords:
-                        - "all"       = all pokemon
-                        - "all shiny" = available shinies
-                        - "shiny"     = user's caught shinies
-                        - "!shiny"    = existing but not caught shinies
-                        - "lucky"     = user's luckies
-                        - "!lucky"    = user's non luckies
-                        - "perfect"   = user's 100% IV
-                        - "!perfect"  = user's non 100% IV
-                        - "complete"  = user's pokemon that are shiny, lucky, and perfect
-                        - "!complete" = user's pokemon that are not shiny, lucky, and perfect
-             
-                    ### Planned keywords:
-                        - (pokemon types)
-             */
-            let keywords: [String: Bool] = ["all shiny": Pokemon.shinyExists, "shiny": Pokemon.caughtShiny, "!shiny": Pokemon.shinyExists && !Pokemon.caughtShiny, "lucky": Pokemon.haveLucky, "!lucky": !Pokemon.haveLucky, "perfect": Pokemon.havePerfect, "!perfect": !Pokemon.havePerfect, "complete": (Pokemon.shinyExists ? Pokemon.caughtShiny : true) && Pokemon.haveLucky && Pokemon.havePerfect, "!complete": (Pokemon.shinyExists ? !Pokemon.caughtShiny : true) || !Pokemon.haveLucky || !Pokemon.havePerfect]
-            let searchTextFiltered = searchText.replacingOccurrences(of: " &", with: "&", options: .literal, range: nil).replacingOccurrences(of: "& ", with: "&", options: .literal, range: nil)
-            let separatorSet = CharacterSet(charactersIn: " ")
+            let keywords: [String: Bool] = ["caught": Pokemon.caught, "!caught": !Pokemon.caught, "all shiny": Pokemon.shinyExists, "shiny": Pokemon.caughtShiny, "!shiny": Pokemon.shinyExists && !Pokemon.caughtShiny, "lucky": Pokemon.haveLucky, "!lucky": !Pokemon.haveLucky, "perfect": Pokemon.havePerfect, "!perfect": !Pokemon.havePerfect, "complete": (Pokemon.shinyExists ? Pokemon.caughtShiny : true) && Pokemon.haveLucky && Pokemon.havePerfect, "!complete": (Pokemon.shinyExists ? !Pokemon.caughtShiny : true) || !Pokemon.haveLucky || !Pokemon.havePerfect]
+            let searchTextFiltered = searchText.replacingOccurrences(of: " &", with: "&", options: .literal, range: nil)
+                    .replacingOccurrences(of: "& ", with: "&", options: .literal, range: nil)
+                    .replacingOccurrences(of: " +", with: "+", options: .literal, range: nil)
+                    .replacingOccurrences(of: "+ ", with: "+", options: .literal, range: nil)
+            let separatorSet = CharacterSet(charactersIn: "+")
             let splitString = searchTextFiltered.components(separatedBy: separatorSet)
             var searchQuery = false
             for query in splitString {
@@ -217,7 +341,6 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             }
             return searchQuery
         }
-        
         myCollectionView.reloadData()
     }
 
