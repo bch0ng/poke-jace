@@ -147,10 +147,10 @@ class InfoViewController: UIViewController {
             self.data?.setValue(false, forKey: "haveLucky")
             self.delegate.data[dataIndex].haveLucky = false
             self.delegate.filteredData[filteredIndex].haveLucky = false
-            self.data?.setValue(false, forKey: "caughtShiny")
+            self.data?.setValue(false, forKey: "havePerfect")
             self.delegate.data[dataIndex].havePerfect = false
             self.delegate.filteredData[filteredIndex].havePerfect = false
-            
+            self.saveCoreData()
         }
     }
     @objc func shinySwitchValueDidChange(sender:UISwitch!) {
