@@ -85,7 +85,11 @@ class InfoViewController: UIViewController {
         dataIndex = pokemonNames.firstIndex(of: pokemonName)!
         view.backgroundColor = .white
         self.navigationItem.title = self.delegate.data[dataIndex].name
-
+        
+        let pokemonImageID = self.delegate.data[dataIndex].id
+        let pokemonImageView = UIImageView(image: UIImage(named: String(pokemonImageID)))
+        pokemonImageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(pokemonImageView)
         view.addSubview(caughtLabel)
         view.addSubview(caughtSwitch)
         view.addSubview(shinyLabel)
@@ -112,6 +116,12 @@ class InfoViewController: UIViewController {
             luckySwitch.isEnabled = false
             perfectSwitch.isEnabled = false
         }
+        
+        pokemonImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        pokemonImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
+        pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
+        caughtLabel.topAnchor.constraint(equalTo: pokemonImageView.topAnchor).isActive = true
+        caughtSwitch.topAnchor.constraint(equalTo: pokemonImageView.topAnchor).isActive = true
         self.setupAutoLayout()
     }
     
@@ -185,11 +195,10 @@ class InfoViewController: UIViewController {
     
     func setupAutoLayout() {
         caughtLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
-        caughtLabel.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         caughtLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
         caughtLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 0).isActive = true
+        
         caughtSwitch.heightAnchor.constraint(equalToConstant: 31).isActive = true
-        caughtSwitch.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         caughtSwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
         caughtSwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
         
