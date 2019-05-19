@@ -12,7 +12,7 @@ import CoreData
 
 class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UISearchBarDelegate, UICollectionViewDataSource {
     
-    struct Pokemon : Codable {
+    struct Pokemon : Codable, Hashable {
         let id: Int
         let name: String
         let hasImage: Bool
@@ -25,6 +25,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     
     var data = [Pokemon]()
     var pokemonNames = [String]()
+    var longPressPokemonID = [Int]()
     
     var filteredData: [Pokemon]!
     
@@ -89,27 +90,6 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             for i in 0 ..< mapped3.count - 2 {
                 if (mapped3[i] < 808) {
                     self.data[mapped3[i] - 1].shinyExists = true
-
-                    /*
-                    /**
-                        TESTING CODE HERE
-                     */
-                    if (Int.random(in: 0 ..< 2) == 0) {
-                        self.data[mapped3[i] - 1].caught = true
-                        if (Int.random(in: 0 ..< 3) == 0) {
-                            self.data[mapped3[i] - 1].caughtShiny = true
-                        }
-                        if (Int.random(in: 0 ..< 3) == 0) {
-                            self.data[mapped3[i] - 1].haveLucky = true
-                        }
-                        if (Int.random(in: 0 ..< 3) == 0) {
-                            self.data[mapped3[i] - 1].havePerfect = true
-                        }
-                    }
-                    /**
-                        END OF TESTING CODE HERE
-                     */
-                    */
                 }
             }
             self.data = self.data.filter({ $0.hasImage })
@@ -182,12 +162,6 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             fetchReq.sortDescriptors = [NSSortDescriptor.init(key: "id", ascending: true)]
             fetchReq.returnsObjectsAsFaults = false
         let fetchRes = try! managedContext.fetch(fetchReq)
-        /*
-         for object in fetchRes {
-         let managedObjectData:NSManagedObject = object as! NSManagedObject
-         managedContext.delete(managedObjectData)
-         }
-         */
         print(fetchRes.count)
         if (fetchRes.count == 0) {
             self.parsePokemonListJSON(appDelegate: appDelegate, managedContext: managedContext)
@@ -201,6 +175,11 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         }
         self.filteredData = self.data
         pokemonNames = self.data.map({ $0.name })
+        
+        let longPressGR = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress(longPressGR:)))
+        longPressGR.minimumPressDuration = 0.5
+        longPressGR.delaysTouchesBegan = true
+        self.myCollectionView.addGestureRecognizer(longPressGR)
         
         view.backgroundColor = .white
         self.navigationItem.title = "Poké Jacé"
@@ -216,12 +195,12 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         //self.filteredData = self.data
-        myCollectionView.reloadData()
+        self.myCollectionView.reloadData()
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         //print(filteredData.count)
-        return filteredData.count
+        return self.filteredData.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -230,9 +209,12 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             view.removeFromSuperview()
         }
         let pokemonImageView = UIImageView(image: UIImage(named: String(filteredData[indexPath.row].id)))
-        if(pokemonImageView.image == nil) {
+        if (pokemonImageView.image == nil) {
             cell.backgroundColor = .gray
             return cell
+        }
+        if (longPressPokemonID.contains(self.filteredData[indexPath.row].id)) {
+            cell.backgroundColor = .lightGray
         }
         pokemonImageView.frame = CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height)
         if (!filteredData[indexPath.row].caught) {
@@ -240,7 +222,6 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             pokemonImageView.tintColor = .gray
         }
         pokemonImageView.contentMode = .scaleAspectFit
-        //cell.addSubview(textLabel)
         var iconsToDisplay = [CGImage?]()
         if (filteredData[indexPath.row].caughtShiny) {
             iconsToDisplay.append(UIImage(named: "shiny_icon")?.cgImage)
@@ -263,26 +244,25 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let cell = collectionView.cellForItem(at: indexPath) {
-            //cell.backgroundColor = .green
-            //self.present(InfoViewController(), animated: true, completion: nil)
-            let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
-                infoViewController.filteredIndex = indexPath.row
-                infoViewController.pokemonName = self.filteredData[indexPath.row].name
-                infoViewController.pokemonNames = self.pokemonNames
-                //infoViewController.filteredData = self.filteredData
-                infoViewController.delegate = self
-            self.navigationController?.pushViewController(infoViewController, animated: true)
+        if longPressPokemonID.isEmpty {
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                //cell.backgroundColor = .green
+                //self.present(InfoViewController(), animated: true, completion: nil)
+                let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
+                    infoViewController.filteredIndex = indexPath.row
+                    infoViewController.pokemonName = self.filteredData[indexPath.row].name
+                    infoViewController.pokemonNames = self.pokemonNames
+                    //infoViewController.filteredData = self.filteredData
+                    infoViewController.delegate = self
+                self.navigationController?.pushViewController(infoViewController, animated: true)
+            }
+        } else {
+            longPressAction(indexPath: indexPath)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-        /*
-        if let cell = collectionView.cellForItem(at: indexPath){
-            //cell.backgroundColor = .white
-            //myCollectionView.reloadData()
-        }
-            */
+
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -290,6 +270,29 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         let yourHeight = yourWidth
         
         return CGSize(width: yourWidth, height: yourHeight)
+    }
+    
+    @objc func handleLongPress(longPressGR: UILongPressGestureRecognizer) {
+        if longPressGR.state != .ended {
+            let point = longPressGR.location(in: self.myCollectionView)
+            let indexPath = self.myCollectionView.indexPathForItem(at: point)
+            if let indexPath = indexPath {
+                longPressAction(indexPath: indexPath)
+            }
+            return
+        }
+    }
+    
+    func longPressAction(indexPath: IndexPath) {
+        let cell = self.myCollectionView.cellForItem(at: indexPath)
+        if !longPressPokemonID.contains(self.filteredData[indexPath.row].id) {
+            longPressPokemonID.append(self.filteredData[indexPath.row].id)
+            cell?.backgroundColor = .lightGray
+        } else {
+            longPressPokemonID = longPressPokemonID.filter{ $0 != self.filteredData[indexPath.row].id }
+            cell?.backgroundColor = .none
+        }
+        print(longPressPokemonID)
     }
     
     /**
