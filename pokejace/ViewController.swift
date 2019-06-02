@@ -10,9 +10,15 @@ import UIKit
 import Foundation
 import CoreData
 
-class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UISearchBarDelegate, UICollectionViewDataSource {
+class ViewController: UIViewController,
+                      UICollectionViewDelegateFlowLayout,
+                      UICollectionViewDelegate,
+                      UISearchBarDelegate,
+                      UICollectionViewDataSource
+{
     
-    struct Pokemon : Codable, Hashable {
+    struct Pokemon : Codable, Hashable
+    {
         let id: Int
         let name: String
         let hasImage: Bool
@@ -29,14 +35,16 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     
     var filteredData: [Pokemon]!
     
-    func parsePokemonListJSON(appDelegate: AppDelegate, managedContext: NSManagedObjectContext) {
+    func parsePokemonListJSON(appDelegate: AppDelegate,
+                              managedContext: NSManagedObjectContext)
+    {
         guard let url = URL(string: "https://pokeapi.co/api/v2/pokemon/?offset=0&limit=493") else {return}
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let dataResponse = data,
                 error == nil else {
                     print(error?.localizedDescription ?? "Response Error")
                     return }
-            do{
+            do {
                 //here dataResponse received from a network request
                 let jsonResponse = try JSONSerialization.jsonObject(with:
                     dataResponse, options: [])
@@ -137,11 +145,46 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         return coll
     }()
     
-    @objc func doneButtonAction() {
+    private let multiActionButton: UIButton = {
+        let button: UIButton = UIButton()
+            button.backgroundColor = .orange
+            button.setTitleColor(.orange, for: .normal)
+            button.translatesAutoresizingMaskIntoConstraints = false
+            button.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.25).cgColor
+            button.layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
+            button.layer.shadowOpacity = 1
+            button.layer.shadowRadius = 0.0
+            button.layer.masksToBounds = false
+            button.layer.cornerRadius = 30.0
+            button.addTarget(self, action:#selector(multiActionButtonActionDown), for: [.touchDown, .touchDragEnter])
+            button.addTarget(self, action:#selector(multiActionButtonActionUp), for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
+        return button
+    }()
+    
+    @objc func doneButtonAction()
+    {
         self.view.endEditing(true)
     }
+    
+    @objc func multiActionButtonActionDown()
+    {
+        UIView.animate(withDuration: 0.2,
+            animations: {
+                self.multiActionButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            })
+        print("MULTI ACTION BUTTON PRESS DOWN")
+    }
+    @objc func multiActionButtonActionUp()
+    {
+        UIView.animate(withDuration: 0.2) {
+            self.multiActionButton.transform = CGAffineTransform.identity
+        }
+        print("MULTI ACTION BUTTON PRESS UP")
+    }
+    
 
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
         
         var items = [UIBarButtonItem]()
@@ -189,21 +232,26 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         myCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "CollCell")
         view.addSubview(searchBar)
         view.addSubview(myCollectionView)
+        view.addSubview(multiActionButton)
+        view.bringSubviewToFront(multiActionButton)
         autoLayoutSetup()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
         //self.filteredData = self.data
         self.myCollectionView.reloadData()
     }
     
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
+    {
         //print(filteredData.count)
         return self.filteredData.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
+    {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollCell", for: indexPath)
         for view in cell.subviews {
             view.removeFromSuperview()
@@ -243,7 +291,8 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
+    {
         if longPressPokemonID.isEmpty {
             if let cell = collectionView.cellForItem(at: indexPath) {
                 let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
@@ -258,29 +307,32 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         }
     }
     
-    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-
-    }
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {}
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize
+    {
         let yourWidth = collectionView.bounds.width / 6.0
         let yourHeight = yourWidth
         
         return CGSize(width: yourWidth, height: yourHeight)
     }
     
-    @objc func handleLongPress(longPressGR: UILongPressGestureRecognizer) {
+    @objc func handleLongPress(longPressGR: UILongPressGestureRecognizer)
+    {
         if longPressGR.state != .ended {
             let point = longPressGR.location(in: self.myCollectionView)
             let indexPath = self.myCollectionView.indexPathForItem(at: point)
             if let indexPath = indexPath {
                 longPressAction(indexPath: indexPath)
             }
-            return
+            longPressGR.state = .ended
         }
     }
     
-    func longPressAction(indexPath: IndexPath) {
+    func longPressAction(indexPath: IndexPath)
+    {
         let cell = self.myCollectionView.cellForItem(at: indexPath)
         if !longPressPokemonID.contains(self.filteredData[indexPath.row].id) {
             longPressPokemonID.append(self.filteredData[indexPath.row].id)
@@ -309,7 +361,8 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
      ### Planned keywords:
      - (pokemon types)
      */
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
+    {
         filteredData = searchText.isEmpty || searchText.lowercased() == "all" ? data : data.filter { (Pokemon) -> Bool in
             let keywords: [String: Bool] = ["caught": Pokemon.caught, "!caught": !Pokemon.caught, "all shiny": Pokemon.shinyExists, "shiny": Pokemon.caughtShiny, "!shiny": Pokemon.shinyExists && !Pokemon.caughtShiny, "lucky": Pokemon.haveLucky, "!lucky": !Pokemon.haveLucky, "perfect": Pokemon.havePerfect, "!perfect": !Pokemon.havePerfect, "complete": (Pokemon.shinyExists ? Pokemon.caughtShiny : true) && Pokemon.haveLucky && Pokemon.havePerfect, "!complete": (Pokemon.shinyExists ? !Pokemon.caughtShiny : true) || !Pokemon.haveLucky || !Pokemon.havePerfect]
             let searchTextFiltered = searchText.replacingOccurrences(of: " &", with: "&", options: .literal, range: nil)
@@ -344,7 +397,8 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         myCollectionView.reloadData()
     }
 
-    func autoLayoutSetup() {
+    func autoLayoutSetup()
+    {
         searchBar.heightAnchor.constraint(equalToConstant: 75).isActive = true
         searchBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         searchBar.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
@@ -354,6 +408,11 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         myCollectionView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
         myCollectionView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
         myCollectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        
+        multiActionButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        multiActionButton.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        multiActionButton.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -20).isActive = true
+        multiActionButton.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -20).isActive = true
     }
 }
 

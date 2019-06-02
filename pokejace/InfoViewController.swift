@@ -24,51 +24,51 @@ class InfoViewController: UIViewController {
     
     private let caughtLabel: UILabel = {
         let label = UILabel()
-        label.text = "Caught"
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .right
+            label.text = "Caught"
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.textAlignment = .right
         return label
     }()
     private let caughtSwitch: UISwitch = {
-        let caught = UISwitch()
-        caught.translatesAutoresizingMaskIntoConstraints = false
-        return caught
+        let uiSwitch = UISwitch()
+            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
     }()
     private let shinyLabel: UILabel = {
         let label = UILabel()
-        label.text = "Caught Shiny"
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .right
+            label.text = "Caught Shiny"
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.textAlignment = .right
         return label
     }()
     private let shinySwitch: UISwitch = {
-        let caught = UISwitch()
-        caught.translatesAutoresizingMaskIntoConstraints = false
-        return caught
+        let uiSwitch = UISwitch()
+            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
     }()
     private let luckyLabel: UILabel = {
         let label = UILabel()
-        label.text = "Have Lucky"
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .right
+            label.text = "Have Lucky"
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.textAlignment = .right
         return label
     }()
     private let luckySwitch: UISwitch = {
-        let caught = UISwitch()
-        caught.translatesAutoresizingMaskIntoConstraints = false
-        return caught
+        let uiSwitch = UISwitch()
+            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
     }()
     private let perfectLabel: UILabel = {
         let label = UILabel()
-        label.text = "Have Perfect IV"
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .right
+            label.text = "Have Perfect IV"
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.textAlignment = .right
         return label
     }()
     private let perfectSwitch: UISwitch = {
-        let caught = UISwitch()
-        caught.translatesAutoresizingMaskIntoConstraints = false
-        return caught
+        let uiSwitch = UISwitch()
+            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
     }()
     
     override func viewDidLoad() {
