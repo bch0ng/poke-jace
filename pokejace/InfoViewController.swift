@@ -187,22 +187,17 @@ class InfoViewController: UIViewController
         caughtSwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
         caughtSwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
         
-        if self.pokemons.count > 1 || self.shinyExist {
-            shinyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
-            shinyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
-            shinyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
-            shinyLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 0).isActive = true
-            shinySwitch.heightAnchor.constraint(equalToConstant: 31).isActive = true
-            shinySwitch.topAnchor.constraint(equalTo: caughtSwitch.bottomAnchor, constant: 20).isActive = true
-            shinySwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
-            shinySwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
-            
-            luckyLabel.topAnchor.constraint(equalTo: shinyLabel.bottomAnchor, constant: 20).isActive = true
-            luckySwitch.topAnchor.constraint(equalTo: shinySwitch.bottomAnchor, constant: 20).isActive = true
-        } else {
-            luckyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
-            luckySwitch.topAnchor.constraint(equalTo: caughtSwitch.bottomAnchor, constant: 20).isActive = true
-        }
+        shinyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
+        shinyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
+        shinyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
+        shinyLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 0).isActive = true
+        shinySwitch.heightAnchor.constraint(equalToConstant: 31).isActive = true
+        shinySwitch.topAnchor.constraint(equalTo: caughtSwitch.bottomAnchor, constant: 20).isActive = true
+        shinySwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
+        shinySwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
+        
+        luckyLabel.topAnchor.constraint(equalTo: shinyLabel.bottomAnchor, constant: 20).isActive = true
+        luckySwitch.topAnchor.constraint(equalTo: shinySwitch.bottomAnchor, constant: 20).isActive = true
         
         luckyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
         luckyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
