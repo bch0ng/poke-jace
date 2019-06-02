@@ -9,162 +9,136 @@
 import UIKit
 import CoreData
 
-class InfoViewController: UIViewController {
-    var filteredIndex: Int = -1
-    var pokemonName: String = "Jace"
-    var pokemonNames = [String]()
-    var dataIndex: Int = -1
+class InfoViewController: UIViewController
+{
+    var pokemons = [Pokemon]()
     var shinyExist: Bool = false
+    var data = [NSManagedObject]()
     
     var appDelegate: AppDelegate?
     var managedContext: NSManagedObjectContext?
-    var data: NSManagedObject?
     
     weak var delegate: ViewController!
     
-    private let caughtLabel: UILabel = {
-        let label = UILabel()
-            label.text = "Caught"
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.textAlignment = .right
-        return label
-    }()
-    private let caughtSwitch: UISwitch = {
-        let uiSwitch = UISwitch()
-            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
-        return uiSwitch
-    }()
-    private let shinyLabel: UILabel = {
-        let label = UILabel()
-            label.text = "Caught Shiny"
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.textAlignment = .right
-        return label
-    }()
-    private let shinySwitch: UISwitch = {
-        let uiSwitch = UISwitch()
-            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
-        return uiSwitch
-    }()
-    private let luckyLabel: UILabel = {
-        let label = UILabel()
-            label.text = "Have Lucky"
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.textAlignment = .right
-        return label
-    }()
-    private let luckySwitch: UISwitch = {
-        let uiSwitch = UISwitch()
-            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
-        return uiSwitch
-    }()
-    private let perfectLabel: UILabel = {
-        let label = UILabel()
-            label.text = "Have Perfect IV"
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.textAlignment = .right
-        return label
-    }()
-    private let perfectSwitch: UISwitch = {
-        let uiSwitch = UISwitch()
-            uiSwitch.translatesAutoresizingMaskIntoConstraints = false
-        return uiSwitch
-    }()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        self.view.backgroundColor = .white
+        //self.view.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: 430)
         appDelegate = UIApplication.shared.delegate as? AppDelegate
         managedContext = appDelegate?.persistentContainer.viewContext
-        let fetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "PokemonMO")
-            fetchReq.predicate = NSPredicate(format: "name = %@", pokemonName)
-            fetchReq.fetchLimit = 1
-            fetchReq.returnsObjectsAsFaults = false
-        let fetchRes = try! managedContext?.fetch(fetchReq)
-        data = fetchRes?.first as? NSManagedObject
         
-        dataIndex = pokemonNames.firstIndex(of: pokemonName)!
-        view.backgroundColor = .white
-        self.navigationItem.title = self.delegate.data[dataIndex].name
-        self.shinyExist = self.delegate.data[dataIndex].shinyExists
-        
-        let pokemonImageID = self.delegate.data[dataIndex].id
-        let pokemonImageView = UIImageView(image: UIImage(named: String(pokemonImageID)))
-            pokemonImageView.contentMode = .scaleAspectFit
-            pokemonImageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(pokemonImageView)
-        pokemonImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
-        pokemonImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
-        pokemonImageView.heightAnchor.constraint(equalToConstant: 150).isActive = true
-        if self.shinyExist {
-            let pokemonShinyImageView = UIImageView(image: UIImage(named: String(pokemonImageID) + "_shiny"))
-                pokemonShinyImageView.contentMode = .scaleAspectFit
-                pokemonShinyImageView.translatesAutoresizingMaskIntoConstraints = false
-            
-            view.addSubview(pokemonShinyImageView)
-            
-            pokemonShinyImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
-            pokemonShinyImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-            pokemonShinyImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
-            pokemonShinyImageView.heightAnchor.constraint(equalToConstant: 150).isActive = true
-            
-            pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-        } else {
-            pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
+        for pokemon in pokemons {
+            let fetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "PokemonMO")
+                fetchReq.predicate = NSPredicate(format: "name = %@", pokemon.name)
+                fetchReq.fetchLimit = 1
+                fetchReq.returnsObjectsAsFaults = false
+            let fetchRes = try! managedContext?.fetch(fetchReq)
+            guard let nmoRes = fetchRes?.first as? NSManagedObject else { return }
+            self.data.append(nmoRes)
         }
-        view.addSubview(caughtLabel)
-        view.addSubview(caughtSwitch)
-        if self.shinyExist {
+        print(self.data)
+        
+        if pokemons.count < 2 {
+            self.navigationItem.title = pokemons[0].name
+            self.shinyExist = pokemons[0].shinyExists
+            
+            let pokemonImageID = pokemons[0].id
+            let pokemonImageView = UIImageView(image: UIImage(named: String(pokemonImageID)))
+                pokemonImageView.contentMode = .scaleAspectFit
+                pokemonImageView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(pokemonImageView)
+            pokemonImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+            pokemonImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
+            pokemonImageView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+            if self.shinyExist {
+                let pokemonShinyImageView = UIImageView(image: UIImage(named: String(pokemonImageID) + "_shiny"))
+                    pokemonShinyImageView.contentMode = .scaleAspectFit
+                    pokemonShinyImageView.translatesAutoresizingMaskIntoConstraints = false
+                view.addSubview(pokemonShinyImageView)
+                pokemonShinyImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+                pokemonShinyImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+                pokemonShinyImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
+                pokemonShinyImageView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+                pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+            } else {
+                pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
+            }
+            view.addSubview(caughtLabel)
+            view.addSubview(caughtSwitch)
+            if self.shinyExist {
+                view.addSubview(shinyLabel)
+                view.addSubview(shinySwitch)
+            }
+            view.addSubview(luckyLabel)
+            view.addSubview(luckySwitch)
+            view.addSubview(perfectLabel)
+            view.addSubview(perfectSwitch)
+            
+            caughtLabel.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
+            caughtSwitch.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
+            
+            caughtSwitch.isOn = pokemons[0].caught
+            caughtSwitch.addTarget(self, action: #selector(self.caughtSwitchValueDidChange), for: .valueChanged)
+            
+            if caughtSwitch.isOn {
+                shinySwitch.isOn = pokemons[0].caughtShiny
+                shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
+                
+                luckySwitch.isOn = pokemons[0].haveLucky
+                luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
+                
+                perfectSwitch.isOn = pokemons[0].havePerfect
+                perfectSwitch.addTarget(self, action: #selector(self.perfectSwitchValueDidChange), for: .valueChanged)
+            } else {
+                shinySwitch.isEnabled = false
+                luckySwitch.isEnabled = false
+                perfectSwitch.isEnabled = false
+            }
+        } else {
+            view.addSubview(caughtLabel)
+            view.addSubview(caughtSwitch)
             view.addSubview(shinyLabel)
             view.addSubview(shinySwitch)
-        }
-        view.addSubview(luckyLabel)
-        view.addSubview(luckySwitch)
-        view.addSubview(perfectLabel)
-        view.addSubview(perfectSwitch)
-        
-        caughtSwitch.isOn = self.delegate.data[dataIndex].caught
-        caughtSwitch.addTarget(self, action: #selector(self.caughtSwitchValueDidChange), for: .valueChanged)
-        
-        if caughtSwitch.isOn {
-            shinySwitch.isOn = self.delegate.data[dataIndex].caughtShiny
-            shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
-        
-            luckySwitch.isOn = self.delegate.data[dataIndex].haveLucky
-            luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
-        
-            perfectSwitch.isOn = self.delegate.data[dataIndex].havePerfect
-            perfectSwitch.addTarget(self, action: #selector(self.perfectSwitchValueDidChange), for: .valueChanged)
-        } else {
-            shinySwitch.isEnabled = false
-            luckySwitch.isEnabled = false
-            perfectSwitch.isEnabled = false
+            view.addSubview(luckyLabel)
+            view.addSubview(luckySwitch)
+            view.addSubview(perfectLabel)
+            view.addSubview(perfectSwitch)
+            
+            caughtLabel.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
+            caughtSwitch.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
+            
+            caughtSwitch.addTarget(self, action: #selector(self.caughtSwitchValueDidChange), for: .valueChanged)
+                shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
+            
+                luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
+            
+                perfectSwitch.addTarget(self, action: #selector(self.perfectSwitchValueDidChange), for: .valueChanged)
+                shinySwitch.isEnabled = false
+                luckySwitch.isEnabled = false
+                perfectSwitch.isEnabled = false
         }
         
-        caughtLabel.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
-        caughtSwitch.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
         self.setupAutoLayout()
     }
     
-    @objc func caughtSwitchValueDidChange(sender:UISwitch!) {
+    //Using NSBatchUpdateRequest
+    func batchUpdate(key: String, value: Bool) {
+        for object in self.data {
+            object.setValue(value, forKey: key)
+        }
+    }
+    
+    @objc func caughtSwitchValueDidChange(sender: UISwitch!) {
         sender.isOn = !sender.isOn
-        self.data?.setValue(sender.isOn, forKey: "caught")
-        self.delegate.data[dataIndex].caught = sender.isOn
-        self.delegate.filteredData[filteredIndex].caught = sender.isOn
+        self.batchUpdate(key: "caught", value: sender.isOn)
         self.saveCoreData()
+        NotificationCenter.default.post(name: NSNotification.Name("refresh"), object: nil)
         if (sender.isOn) {
             shinySwitch.isEnabled = true
             luckySwitch.isEnabled = true
             perfectSwitch.isEnabled = true
-            
-            shinySwitch.isOn = self.delegate.data[dataIndex].caughtShiny
             shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
-            
-            luckySwitch.isOn = self.delegate.data[dataIndex].haveLucky
             luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
-            
-            perfectSwitch.isOn = self.delegate.data[dataIndex].havePerfect
             perfectSwitch.addTarget(self, action: #selector(self.perfectSwitchValueDidChange), for: .valueChanged)
         } else {
             shinySwitch.isEnabled = false
@@ -173,37 +147,26 @@ class InfoViewController: UIViewController {
             shinySwitch.isOn = false
             luckySwitch.isOn = false
             perfectSwitch.isOn = false
-            self.data?.setValue(false, forKey: "caughtShiny")
-            self.delegate.data[dataIndex].caughtShiny = false
-            self.delegate.filteredData[filteredIndex].caughtShiny = false
-            self.data?.setValue(false, forKey: "haveLucky")
-            self.delegate.data[dataIndex].haveLucky = false
-            self.delegate.filteredData[filteredIndex].haveLucky = false
-            self.data?.setValue(false, forKey: "havePerfect")
-            self.delegate.data[dataIndex].havePerfect = false
-            self.delegate.filteredData[filteredIndex].havePerfect = false
+            self.batchUpdate(key: "caughtShiny", value: false)
+            self.batchUpdate(key: "haveLucky", value: false)
+            self.batchUpdate(key: "havePerfect", value: false)
             self.saveCoreData()
         }
     }
-    @objc func shinySwitchValueDidChange(sender:UISwitch!) {
+    @objc func shinySwitchValueDidChange(sender: UISwitch!) {
         sender.isOn = !sender.isOn
-        self.data?.setValue(sender.isOn, forKey: "caughtShiny")
-        self.delegate.data[dataIndex].caughtShiny = sender.isOn
-        self.delegate.filteredData[filteredIndex].caughtShiny = sender.isOn
+        
+        self.batchUpdate(key: "caughtShiny", value: sender.isOn)
         self.saveCoreData()
     }
-    @objc func luckySwitchValueDidChange(sender:UISwitch!) {
+    @objc func luckySwitchValueDidChange(sender: UISwitch!) {
         sender.isOn = !sender.isOn
-        self.data?.setValue(sender.isOn, forKey: "haveLucky")
-        self.delegate.data[dataIndex].haveLucky = sender.isOn
-        self.delegate.filteredData[filteredIndex].haveLucky = sender.isOn
+        self.batchUpdate(key: "haveLucky", value: sender.isOn)
         self.saveCoreData()
     }
-    @objc func perfectSwitchValueDidChange(sender:UISwitch!) {
+    @objc func perfectSwitchValueDidChange(sender: UISwitch!) {
         sender.isOn = !sender.isOn
-        self.data?.setValue(sender.isOn, forKey: "havePerfect")
-        self.delegate.data[dataIndex].havePerfect = sender.isOn
-        self.delegate.filteredData[filteredIndex].havePerfect = sender.isOn
+        self.batchUpdate(key: "havePerfect", value: sender.isOn)
         self.saveCoreData()
     }
     
@@ -224,7 +187,7 @@ class InfoViewController: UIViewController {
         caughtSwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
         caughtSwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
         
-        if self.shinyExist {
+        if pokemons.count > 2 || self.shinyExist {
             shinyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
             shinyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
             shinyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
@@ -256,6 +219,55 @@ class InfoViewController: UIViewController {
         perfectSwitch.topAnchor.constraint(equalTo: luckySwitch.bottomAnchor, constant: 20).isActive = true
         perfectSwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
         perfectSwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
- 
     }
+    
+    // UI Stuff
+    private let caughtLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Caught"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        return label
+    }()
+    private let caughtSwitch: UISwitch = {
+        let uiSwitch = UISwitch()
+        uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
+    }()
+    private let shinyLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Caught Shiny"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        return label
+    }()
+    private let shinySwitch: UISwitch = {
+        let uiSwitch = UISwitch()
+        uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
+    }()
+    private let luckyLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Have Lucky"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        return label
+    }()
+    private let luckySwitch: UISwitch = {
+        let uiSwitch = UISwitch()
+        uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
+    }()
+    private let perfectLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Have Perfect IV"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        return label
+    }()
+    private let perfectSwitch: UISwitch = {
+        let uiSwitch = UISwitch()
+        uiSwitch.translatesAutoresizingMaskIntoConstraints = false
+        return uiSwitch
+    }()
 }

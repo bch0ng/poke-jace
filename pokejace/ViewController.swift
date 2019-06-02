@@ -10,6 +10,18 @@ import UIKit
 import Foundation
 import CoreData
 
+struct Pokemon : Codable, Hashable
+{
+    let id: Int
+    let name: String
+    let hasImage: Bool
+    var caught: Bool
+    var shinyExists: Bool
+    var caughtShiny: Bool
+    var haveLucky: Bool
+    var havePerfect: Bool
+}
+
 class ViewController: UIViewController,
                       UICollectionViewDelegateFlowLayout,
                       UICollectionViewDelegate,
@@ -17,21 +29,9 @@ class ViewController: UIViewController,
                       UICollectionViewDataSource
 {
     
-    struct Pokemon : Codable, Hashable
-    {
-        let id: Int
-        let name: String
-        let hasImage: Bool
-        var caught: Bool
-        var shinyExists: Bool
-        var caughtShiny: Bool
-        var haveLucky: Bool
-        var havePerfect: Bool
-    }
-    
     var data = [Pokemon]()
     var pokemonNames = [String]()
-    var longPressPokemonID = [Int]()
+    var longPressPokemon = [Pokemon]()
     
     var filteredData: [Pokemon]!
     
@@ -156,8 +156,9 @@ class ViewController: UIViewController,
             button.layer.shadowRadius = 0.0
             button.layer.masksToBounds = false
             button.layer.cornerRadius = 30.0
-            button.addTarget(self, action:#selector(multiActionButtonActionDown), for: [.touchDown, .touchDragEnter])
-            button.addTarget(self, action:#selector(multiActionButtonActionUp), for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
+            button.addTarget(self, action:#selector(multiActionButtonDownAnimation), for: [.touchDown, .touchDragEnter])
+            button.addTarget(self, action:#selector(multiActionButtonUpAnimation), for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
+            button.addTarget(self, action:#selector(multiActionButtonAction), for: .touchUpInside)
         return button
     }()
     
@@ -166,27 +167,57 @@ class ViewController: UIViewController,
         self.view.endEditing(true)
     }
     
-    @objc func multiActionButtonActionDown()
+    @objc func multiActionButtonDownAnimation()
     {
         UIView.animate(withDuration: 0.2,
             animations: {
-                self.multiActionButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+                self.multiActionButton.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
             })
         print("MULTI ACTION BUTTON PRESS DOWN")
     }
-    @objc func multiActionButtonActionUp()
+    @objc func multiActionButtonUpAnimation()
     {
         UIView.animate(withDuration: 0.2) {
             self.multiActionButton.transform = CGAffineTransform.identity
         }
         print("MULTI ACTION BUTTON PRESS UP")
     }
-    
-
+    @objc func multiActionButtonAction()
+    {
+        let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
+            infoViewController.pokemons = longPressPokemon
+            infoViewController.delegate = self
+            self.navigationController?.pushViewController(infoViewController, animated: true)
+        print("MULTI ACTION BUTTON ACTION")
+    }
+    @objc func refreshCollectionView(notification: NSNotification)
+    {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let fetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "PokemonMO")
+        fetchReq.sortDescriptors = [NSSortDescriptor.init(key: "id", ascending: true)]
+        fetchReq.returnsObjectsAsFaults = false
+        let fetchRes = try! managedContext.fetch(fetchReq)
+        //print(fetchRes.count)
+        if (fetchRes.count == 0) {
+            self.parsePokemonListJSON(appDelegate: appDelegate, managedContext: managedContext)
+        } else {
+            self.data.removeAll()
+            for data in fetchRes as! [NSManagedObject] {
+                //print(data.value(forKey: "name") as! String)
+                if (data.value(forKey: "hasImage") as! Bool) {
+                    self.data.append(Pokemon(id: data.value(forKey: "id") as! Int, name: data.value(forKey: "name") as! String, hasImage: true, caught: data.value(forKey: "caught") as! Bool, shinyExists: data.value(forKey: "shinyExists") as! Bool, caughtShiny: data.value(forKey: "caughtShiny") as! Bool, haveLucky: data.value(forKey: "haveLucky") as! Bool, havePerfect: data.value(forKey: "havePerfect") as! Bool))
+                }
+            }
+        }
+        self.filteredData = self.data
+        pokemonNames = self.data.map({ $0.name })
+        self.myCollectionView.reloadData()
+    }
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshCollectionView(notification:)), name: NSNotification.Name(rawValue: "refresh"), object: nil)
         var items = [UIBarButtonItem]()
         let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneBtn: UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonAction))
@@ -205,7 +236,7 @@ class ViewController: UIViewController,
             fetchReq.sortDescriptors = [NSSortDescriptor.init(key: "id", ascending: true)]
             fetchReq.returnsObjectsAsFaults = false
         let fetchRes = try! managedContext.fetch(fetchReq)
-        print(fetchRes.count)
+        //print(fetchRes.count)
         if (fetchRes.count == 0) {
             self.parsePokemonListJSON(appDelegate: appDelegate, managedContext: managedContext)
         } else {
@@ -261,7 +292,7 @@ class ViewController: UIViewController,
             cell.backgroundColor = .gray
             return cell
         }
-        if (longPressPokemonID.contains(self.filteredData[indexPath.row].id)) {
+        if (longPressPokemon.contains(self.filteredData[indexPath.row])) {
             cell.backgroundColor = .lightGray
         }
         pokemonImageView.frame = CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height)
@@ -293,12 +324,10 @@ class ViewController: UIViewController,
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
     {
-        if longPressPokemonID.isEmpty {
+        if longPressPokemon.isEmpty {
             if let cell = collectionView.cellForItem(at: indexPath) {
                 let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
-                    infoViewController.filteredIndex = indexPath.row
-                    infoViewController.pokemonName = self.filteredData[indexPath.row].name
-                    infoViewController.pokemonNames = self.pokemonNames
+                    infoViewController.pokemons = [self.filteredData[indexPath.row]]
                     infoViewController.delegate = self
                 self.navigationController?.pushViewController(infoViewController, animated: true)
             }
@@ -334,14 +363,14 @@ class ViewController: UIViewController,
     func longPressAction(indexPath: IndexPath)
     {
         let cell = self.myCollectionView.cellForItem(at: indexPath)
-        if !longPressPokemonID.contains(self.filteredData[indexPath.row].id) {
-            longPressPokemonID.append(self.filteredData[indexPath.row].id)
+        if !longPressPokemon.contains(self.filteredData[indexPath.row]) {
+            longPressPokemon.append(self.filteredData[indexPath.row])
             cell?.backgroundColor = .lightGray
         } else {
-            longPressPokemonID = longPressPokemonID.filter{ $0 != self.filteredData[indexPath.row].id }
+            longPressPokemon = longPressPokemon.filter{ $0 != self.filteredData[indexPath.row] }
             cell?.backgroundColor = .none
         }
-        print(longPressPokemonID)
+        //print(longPressPokemon)
     }
     
     /**
