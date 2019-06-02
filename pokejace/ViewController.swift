@@ -246,13 +246,10 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if longPressPokemonID.isEmpty {
             if let cell = collectionView.cellForItem(at: indexPath) {
-                //cell.backgroundColor = .green
-                //self.present(InfoViewController(), animated: true, completion: nil)
                 let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
                     infoViewController.filteredIndex = indexPath.row
                     infoViewController.pokemonName = self.filteredData[indexPath.row].name
                     infoViewController.pokemonNames = self.pokemonNames
-                    //infoViewController.filteredData = self.filteredData
                     infoViewController.delegate = self
                 self.navigationController?.pushViewController(infoViewController, animated: true)
             }

@@ -14,6 +14,7 @@ class InfoViewController: UIViewController {
     var pokemonName: String = "Jace"
     var pokemonNames = [String]()
     var dataIndex: Int = -1
+    var shinyExist: Bool = false
     
     var appDelegate: AppDelegate?
     var managedContext: NSManagedObjectContext?
@@ -85,15 +86,39 @@ class InfoViewController: UIViewController {
         dataIndex = pokemonNames.firstIndex(of: pokemonName)!
         view.backgroundColor = .white
         self.navigationItem.title = self.delegate.data[dataIndex].name
+        self.shinyExist = self.delegate.data[dataIndex].shinyExists
         
         let pokemonImageID = self.delegate.data[dataIndex].id
         let pokemonImageView = UIImageView(image: UIImage(named: String(pokemonImageID)))
-        pokemonImageView.translatesAutoresizingMaskIntoConstraints = false
+            pokemonImageView.contentMode = .scaleAspectFit
+            pokemonImageView.translatesAutoresizingMaskIntoConstraints = false
+        
         view.addSubview(pokemonImageView)
+        pokemonImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        pokemonImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
+        pokemonImageView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+        if self.shinyExist {
+            let pokemonShinyImageView = UIImageView(image: UIImage(named: String(pokemonImageID) + "_shiny"))
+                pokemonShinyImageView.contentMode = .scaleAspectFit
+                pokemonShinyImageView.translatesAutoresizingMaskIntoConstraints = false
+            
+            view.addSubview(pokemonShinyImageView)
+            
+            pokemonShinyImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+            pokemonShinyImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+            pokemonShinyImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
+            pokemonShinyImageView.heightAnchor.constraint(equalToConstant: 150).isActive = true
+            
+            pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
+        } else {
+            pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
+        }
         view.addSubview(caughtLabel)
         view.addSubview(caughtSwitch)
-        view.addSubview(shinyLabel)
-        view.addSubview(shinySwitch)
+        if self.shinyExist {
+            view.addSubview(shinyLabel)
+            view.addSubview(shinySwitch)
+        }
         view.addSubview(luckyLabel)
         view.addSubview(luckySwitch)
         view.addSubview(perfectLabel)
@@ -102,7 +127,7 @@ class InfoViewController: UIViewController {
         caughtSwitch.isOn = self.delegate.data[dataIndex].caught
         caughtSwitch.addTarget(self, action: #selector(self.caughtSwitchValueDidChange), for: .valueChanged)
         
-        if (caughtSwitch.isOn) {
+        if caughtSwitch.isOn {
             shinySwitch.isOn = self.delegate.data[dataIndex].caughtShiny
             shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
         
@@ -117,11 +142,8 @@ class InfoViewController: UIViewController {
             perfectSwitch.isEnabled = false
         }
         
-        pokemonImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
-        pokemonImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
-        pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
-        caughtLabel.topAnchor.constraint(equalTo: pokemonImageView.topAnchor).isActive = true
-        caughtSwitch.topAnchor.constraint(equalTo: pokemonImageView.topAnchor).isActive = true
+        caughtLabel.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
+        caughtSwitch.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
         self.setupAutoLayout()
     }
     
@@ -202,21 +224,27 @@ class InfoViewController: UIViewController {
         caughtSwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
         caughtSwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
         
-        shinyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
-        shinyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
-        shinyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
-        shinyLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 0).isActive = true
-        shinySwitch.heightAnchor.constraint(equalToConstant: 31).isActive = true
-        shinySwitch.topAnchor.constraint(equalTo: caughtSwitch.bottomAnchor, constant: 20).isActive = true
-        shinySwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
-        shinySwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
+        if self.shinyExist {
+            shinyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
+            shinyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
+            shinyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
+            shinyLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 0).isActive = true
+            shinySwitch.heightAnchor.constraint(equalToConstant: 31).isActive = true
+            shinySwitch.topAnchor.constraint(equalTo: caughtSwitch.bottomAnchor, constant: 20).isActive = true
+            shinySwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
+            shinySwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
+            
+            luckyLabel.topAnchor.constraint(equalTo: shinyLabel.bottomAnchor, constant: 20).isActive = true
+            luckySwitch.topAnchor.constraint(equalTo: shinySwitch.bottomAnchor, constant: 20).isActive = true
+        } else {
+            luckyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
+            luckySwitch.topAnchor.constraint(equalTo: caughtSwitch.bottomAnchor, constant: 20).isActive = true
+        }
         
         luckyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
-        luckyLabel.topAnchor.constraint(equalTo: shinyLabel.bottomAnchor, constant: 20).isActive = true
         luckyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
         luckyLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 0).isActive = true
         luckySwitch.heightAnchor.constraint(equalToConstant: 31).isActive = true
-        luckySwitch.topAnchor.constraint(equalTo: shinySwitch.bottomAnchor, constant: 20).isActive = true
         luckySwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
         luckySwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
         
