@@ -159,6 +159,7 @@ class ViewController: UIViewController,
             button.addTarget(self, action:#selector(multiActionButtonDownAnimation), for: [.touchDown, .touchDragEnter])
             button.addTarget(self, action:#selector(multiActionButtonUpAnimation), for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
             button.addTarget(self, action:#selector(multiActionButtonAction), for: .touchUpInside)
+            button.isHidden = true
         return button
     }()
     
@@ -195,8 +196,8 @@ class ViewController: UIViewController,
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let managedContext = appDelegate.persistentContainer.viewContext
         let fetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "PokemonMO")
-        fetchReq.sortDescriptors = [NSSortDescriptor.init(key: "id", ascending: true)]
-        fetchReq.returnsObjectsAsFaults = false
+            fetchReq.sortDescriptors = [NSSortDescriptor.init(key: "id", ascending: true)]
+            fetchReq.returnsObjectsAsFaults = false
         let fetchRes = try! managedContext.fetch(fetchReq)
         //print(fetchRes.count)
         if (fetchRes.count == 0) {
@@ -210,8 +211,8 @@ class ViewController: UIViewController,
                 }
             }
         }
-        self.filteredData = self.data
-        pokemonNames = self.data.map({ $0.name })
+        let filteredDataIDs = filteredData.map { $0.id }
+        self.filteredData = self.data.filter { filteredDataIDs.contains($0.id) }
         self.myCollectionView.reloadData()
     }
     override func viewDidLoad()
@@ -293,7 +294,10 @@ class ViewController: UIViewController,
             return cell
         }
         if (longPressPokemon.contains(self.filteredData[indexPath.row])) {
+            print("HELLO")
             cell.backgroundColor = .lightGray
+        } else {
+            cell.backgroundColor = .white
         }
         pokemonImageView.frame = CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height)
         if (!filteredData[indexPath.row].caught) {
@@ -356,6 +360,7 @@ class ViewController: UIViewController,
             if let indexPath = indexPath {
                 longPressAction(indexPath: indexPath)
             }
+            self.view.endEditing(true)
             longPressGR.state = .ended
         }
     }
@@ -366,9 +371,15 @@ class ViewController: UIViewController,
         if !longPressPokemon.contains(self.filteredData[indexPath.row]) {
             longPressPokemon.append(self.filteredData[indexPath.row])
             cell?.backgroundColor = .lightGray
+            if multiActionButton.isHidden {
+                multiActionButton.isHidden = false
+            }
         } else {
             longPressPokemon = longPressPokemon.filter{ $0 != self.filteredData[indexPath.row] }
             cell?.backgroundColor = .none
+            if longPressPokemon.isEmpty {
+                multiActionButton.isHidden = true
+            }
         }
         //print(longPressPokemon)
     }

@@ -108,14 +108,12 @@ class InfoViewController: UIViewController
             caughtSwitch.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
             
             caughtSwitch.addTarget(self, action: #selector(self.caughtSwitchValueDidChange), for: .valueChanged)
-                shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
-            
-                luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
-            
-                perfectSwitch.addTarget(self, action: #selector(self.perfectSwitchValueDidChange), for: .valueChanged)
-                shinySwitch.isEnabled = false
-                luckySwitch.isEnabled = false
-                perfectSwitch.isEnabled = false
+            shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
+            luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
+            perfectSwitch.addTarget(self, action: #selector(self.perfectSwitchValueDidChange), for: .valueChanged)
+            shinySwitch.isEnabled = false
+            luckySwitch.isEnabled = false
+            perfectSwitch.isEnabled = false
         }
         
         self.setupAutoLayout()
@@ -126,13 +124,13 @@ class InfoViewController: UIViewController
         for object in self.data {
             object.setValue(value, forKey: key)
         }
+        NotificationCenter.default.post(name: NSNotification.Name("refresh"), object: nil)
     }
     
     @objc func caughtSwitchValueDidChange(sender: UISwitch!) {
         sender.isOn = !sender.isOn
         self.batchUpdate(key: "caught", value: sender.isOn)
         self.saveCoreData()
-        NotificationCenter.default.post(name: NSNotification.Name("refresh"), object: nil)
         if (sender.isOn) {
             shinySwitch.isEnabled = true
             luckySwitch.isEnabled = true
