@@ -95,6 +95,8 @@ class InfoViewController: UIViewController
                 perfectSwitch.isEnabled = false
             }
         } else {
+            self.navigationItem.title = "Multiple Pokemon"
+            
             view.addSubview(caughtLabel)
             view.addSubview(caughtSwitch)
             view.addSubview(shinyLabel)
@@ -185,7 +187,7 @@ class InfoViewController: UIViewController
         caughtSwitch.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor, constant: 20).isActive = true
         caughtSwitch.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
         
-        if pokemons.count > 2 || self.shinyExist {
+        if self.pokemons.count > 1 || self.shinyExist {
             shinyLabel.heightAnchor.constraint(equalToConstant: 31).isActive = true
             shinyLabel.topAnchor.constraint(equalTo: caughtLabel.bottomAnchor, constant: 20).isActive = true
             shinyLabel.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true

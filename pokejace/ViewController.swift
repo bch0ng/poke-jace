@@ -148,7 +148,6 @@ class ViewController: UIViewController,
     private let multiActionButton: UIButton = {
         let button: UIButton = UIButton()
             button.backgroundColor = .orange
-            button.setTitleColor(.orange, for: .normal)
             button.translatesAutoresizingMaskIntoConstraints = false
             button.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.25).cgColor
             button.layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
@@ -156,6 +155,7 @@ class ViewController: UIViewController,
             button.layer.shadowRadius = 0.0
             button.layer.masksToBounds = false
             button.layer.cornerRadius = 30.0
+            button.setImage(UIImage(named: "edit-icon-24"), for: .normal)
             button.addTarget(self, action:#selector(multiActionButtonDownAnimation), for: [.touchDown, .touchDragEnter])
             button.addTarget(self, action:#selector(multiActionButtonUpAnimation), for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
             button.addTarget(self, action:#selector(multiActionButtonAction), for: .touchUpInside)
@@ -191,6 +191,14 @@ class ViewController: UIViewController,
             self.navigationController?.pushViewController(infoViewController, animated: true)
         print("MULTI ACTION BUTTON ACTION")
     }
+    @objc func clearLongPressPokemon()
+    {
+        self.longPressPokemon.removeAll()
+        self.multiActionButton.isHidden = true
+        self.navigationItem.rightBarButtonItem = nil
+        self.myCollectionView.reloadData()
+    }
+    
     @objc func refreshCollectionView(notification: NSNotification)
     {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
@@ -368,17 +376,19 @@ class ViewController: UIViewController,
     func longPressAction(indexPath: IndexPath)
     {
         let cell = self.myCollectionView.cellForItem(at: indexPath)
-        if !longPressPokemon.contains(self.filteredData[indexPath.row]) {
-            longPressPokemon.append(self.filteredData[indexPath.row])
+        if !self.longPressPokemon.contains(self.filteredData[indexPath.row]) {
+            self.longPressPokemon.append(self.filteredData[indexPath.row])
             cell?.backgroundColor = .lightGray
-            if multiActionButton.isHidden {
-                multiActionButton.isHidden = false
+            if self.multiActionButton.isHidden {
+                self.multiActionButton.isHidden = false
+                self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .done, target: self, action: #selector(clearLongPressPokemon))
             }
         } else {
-            longPressPokemon = longPressPokemon.filter{ $0 != self.filteredData[indexPath.row] }
+            self.longPressPokemon = self.longPressPokemon.filter{ $0 != self.filteredData[indexPath.row] }
             cell?.backgroundColor = .none
-            if longPressPokemon.isEmpty {
-                multiActionButton.isHidden = true
+            if self.longPressPokemon.isEmpty {
+                self.multiActionButton.isHidden = true
+                self.navigationItem.rightBarButtonItem = nil
             }
         }
         //print(longPressPokemon)
