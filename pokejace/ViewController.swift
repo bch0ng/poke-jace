@@ -74,9 +74,42 @@ class ViewController: UIViewController,
         task.resume()
         
         // Get Shiny List
+        let mapped3 = self.checkForUpdatedShinies()
+        for i in 0 ..< mapped3.count - 2 {
+            if (mapped3[i] < 808) {
+                self.data[mapped3[i] - 1].shinyExists = true
+            }
+        }
+        self.data = self.data.filter({ $0.hasImage })
+        pokemonNames = self.data.map({ $0.name })
+        
+        let pokemonMOEntity = NSEntityDescription.entity(forEntityName: "PokemonMO", in: managedContext)!
+        for item in self.data {
+            let pokemonMO = NSManagedObject(entity: pokemonMOEntity, insertInto: managedContext)
+                pokemonMO.setValue(item.id, forKeyPath: "id")
+                pokemonMO.setValue(item.name, forKeyPath: "name")
+                pokemonMO.setValue(item.hasImage, forKeyPath: "hasImage")
+                pokemonMO.setValue(item.caught, forKeyPath: "caught")
+                pokemonMO.setValue(item.shinyExists, forKeyPath: "shinyExists")
+                pokemonMO.setValue(item.caughtShiny, forKeyPath: "caughtShiny")
+                pokemonMO.setValue(item.haveLucky, forKeyPath: "haveLucky")
+                pokemonMO.setValue(item.havePerfect, forKeyPath: "havePerfect")
+        }
+        do {
+            try managedContext.save()
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+        }
+        
+        self.filteredData = self.data
+        self.myCollectionView.reloadData()
+    }
+    
+    private func checkForUpdatedShinies() -> Array<Int>
+    {
         guard let myURL = URL(string: "https://pokemongo.gamepress.gg/pokemon-go-shinies-list") else {
             print("Error: Doesn't seem to be a valid URL")
-            return
+            return []
         }
         do {
             let myHTMLString = try String(contentsOf: myURL, encoding: .ascii)
@@ -92,39 +125,12 @@ class ViewController: UIViewController,
                     options: .regularExpression
                 )
             }
-            var mapped3 = mapped2.map {
+            let mapped3 = mapped2.map {
                 Int($0)!
             }
-            for i in 0 ..< mapped3.count - 2 {
-                if (mapped3[i] < 808) {
-                    self.data[mapped3[i] - 1].shinyExists = true
-                }
-            }
-            self.data = self.data.filter({ $0.hasImage })
-            pokemonNames = self.data.map({ $0.name })
-            
-            let pokemonMOEntity = NSEntityDescription.entity(forEntityName: "PokemonMO", in: managedContext)!
-            for item in self.data {
-                let pokemonMO = NSManagedObject(entity: pokemonMOEntity, insertInto: managedContext)
-                    pokemonMO.setValue(item.id, forKeyPath: "id")
-                    pokemonMO.setValue(item.name, forKeyPath: "name")
-                    pokemonMO.setValue(item.hasImage, forKeyPath: "hasImage")
-                    pokemonMO.setValue(item.caught, forKeyPath: "caught")
-                    pokemonMO.setValue(item.shinyExists, forKeyPath: "shinyExists")
-                    pokemonMO.setValue(item.caughtShiny, forKeyPath: "caughtShiny")
-                    pokemonMO.setValue(item.haveLucky, forKeyPath: "haveLucky")
-                    pokemonMO.setValue(item.havePerfect, forKeyPath: "havePerfect")
-            }
-            do {
-                try managedContext.save()
-            } catch let error as NSError {
-                print("Could not save. \(error), \(error.userInfo)")
-            }
-            
-            self.filteredData = self.data
-            self.myCollectionView.reloadData()
-        } catch let error {
-            print("Error: \(error)")
+            return mapped3
+        } catch {
+            return []
         }
     }
     
@@ -222,6 +228,7 @@ class ViewController: UIViewController,
         let filteredDataIDs = filteredData.map { $0.id }
         self.filteredData = self.data.filter { filteredDataIDs.contains($0.id) }
         self.myCollectionView.reloadData()
+        print(longPressPokemon)
     }
     override func viewDidLoad()
     {
@@ -249,6 +256,7 @@ class ViewController: UIViewController,
         if (fetchRes.count == 0) {
             self.parsePokemonListJSON(appDelegate: appDelegate, managedContext: managedContext)
         } else {
+            self.checkForUpdatedShinies()
             for data in fetchRes as! [NSManagedObject] {
                 //print(data.value(forKey: "name") as! String)
                 if (data.value(forKey: "hasImage") as! Bool) {
@@ -293,6 +301,8 @@ class ViewController: UIViewController,
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
     {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollCell", for: indexPath)
+        cell.layer.cornerRadius = 5.0
+        cell.layer.masksToBounds = true
         for view in cell.subviews {
             view.removeFromSuperview()
         }
@@ -301,26 +311,26 @@ class ViewController: UIViewController,
             cell.backgroundColor = .gray
             return cell
         }
-        if (longPressPokemon.contains(self.filteredData[indexPath.row])) {
-            print("HELLO")
+        let longPressPokemonIDs = self.longPressPokemon.map { $0.id }
+        if (longPressPokemonIDs.contains(self.filteredData[indexPath.row].id)) {
             cell.backgroundColor = .lightGray
         } else {
             cell.backgroundColor = .white
         }
         pokemonImageView.frame = CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height)
-        if (!filteredData[indexPath.row].caught) {
+        if (!self.filteredData[indexPath.row].caught) {
             pokemonImageView.image = pokemonImageView.image?.withRenderingMode(.alwaysTemplate)
             pokemonImageView.tintColor = .gray
         }
         pokemonImageView.contentMode = .scaleAspectFit
         var iconsToDisplay = [CGImage?]()
-        if (filteredData[indexPath.row].caughtShiny) {
+        if (self.filteredData[indexPath.row].caughtShiny) {
             iconsToDisplay.append(UIImage(named: "shiny_icon")?.cgImage)
         }
-        if (filteredData[indexPath.row].haveLucky) {
+        if (self.filteredData[indexPath.row].haveLucky) {
             iconsToDisplay.append(UIImage(named: "lucky_icon")?.cgImage)
         }
-        if (filteredData[indexPath.row].havePerfect) {
+        if (self.filteredData[indexPath.row].havePerfect) {
             iconsToDisplay.append(UIImage(named: "perfect_icon")?.cgImage)
         }
         for i in 0 ..< iconsToDisplay.count {
@@ -414,7 +424,27 @@ class ViewController: UIViewController,
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
         filteredData = searchText.isEmpty || searchText.lowercased() == "all" ? data : data.filter { (Pokemon) -> Bool in
-            let keywords: [String: Bool] = ["caught": Pokemon.caught, "!caught": !Pokemon.caught, "all shiny": Pokemon.shinyExists, "shiny": Pokemon.caughtShiny, "!shiny": Pokemon.shinyExists && !Pokemon.caughtShiny, "lucky": Pokemon.haveLucky, "!lucky": !Pokemon.haveLucky, "perfect": Pokemon.havePerfect, "!perfect": !Pokemon.havePerfect, "complete": (Pokemon.shinyExists ? Pokemon.caughtShiny : true) && Pokemon.haveLucky && Pokemon.havePerfect, "!complete": (Pokemon.shinyExists ? !Pokemon.caughtShiny : true) || !Pokemon.haveLucky || !Pokemon.havePerfect]
+            let keywords: [String: Bool] = [
+                    "caught": Pokemon.caught,
+                    "!caught": !Pokemon.caught,
+                    "all shiny": Pokemon.shinyExists,
+                    "shiny": Pokemon.caughtShiny,
+                    "!shiny": Pokemon.shinyExists && !Pokemon.caughtShiny,
+                    "lucky": Pokemon.haveLucky,
+                    "!lucky": !Pokemon.haveLucky,
+                    "perfect": Pokemon.havePerfect,
+                    "!perfect": !Pokemon.havePerfect,
+                    "complete": (Pokemon.shinyExists ? Pokemon.caughtShiny : true) && Pokemon.haveLucky && Pokemon.havePerfect,
+                    "!complete": (Pokemon.shinyExists ? !Pokemon.caughtShiny : true) || !Pokemon.haveLucky || !Pokemon.havePerfect,
+                    "kanto": (Pokemon.id > 0 && Pokemon.id <= 151),
+                    "johto": (Pokemon.id > 151 && Pokemon.id <= 251),
+                    "hoenn": (Pokemon.id > 251 && Pokemon.id <= 386),
+                    "sinnoh": (Pokemon.id > 386 && Pokemon.id <= 493),
+                    "unova": (Pokemon.id > 493 && Pokemon.id <= 649),
+                    "kalos": (Pokemon.id > 649 && Pokemon.id <= 721),
+                    "alola": (Pokemon.id > 721 && Pokemon.id <= 807),
+                    "unknown": Pokemon.id == 808 || Pokemon.id == 809
+                ]
             let searchTextFiltered = searchText.replacingOccurrences(of: " &", with: "&", options: .literal, range: nil)
                     .replacingOccurrences(of: "& ", with: "&", options: .literal, range: nil)
                     .replacingOccurrences(of: " +", with: "+", options: .literal, range: nil)

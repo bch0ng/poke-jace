@@ -36,7 +36,7 @@ class InfoViewController: UIViewController
             guard let nmoRes = fetchRes?.first as? NSManagedObject else { return }
             self.data.append(nmoRes)
         }
-        print(self.data)
+        // print(self.data)
         
         if pokemons.count < 2 {
             self.navigationItem.title = pokemons[0].name
@@ -65,10 +65,8 @@ class InfoViewController: UIViewController
             }
             view.addSubview(caughtLabel)
             view.addSubview(caughtSwitch)
-            if self.shinyExist {
-                view.addSubview(shinyLabel)
-                view.addSubview(shinySwitch)
-            }
+            view.addSubview(shinyLabel)
+            view.addSubview(shinySwitch)
             view.addSubview(luckyLabel)
             view.addSubview(luckySwitch)
             view.addSubview(perfectLabel)
