@@ -15,6 +15,8 @@ class InfoViewController: UIViewController
     var shinyExist: Bool = false
     var allPokemon = [Pokemon]()
     var data = [NSManagedObject]()
+    private lazy var pokemonImageView: UIImageView = UIImageView()
+    private lazy var pokemonShinyImageView: UIImageView = UIImageView()
     
     var appDelegate: AppDelegate?
     var managedContext: NSManagedObjectContext?
@@ -95,6 +97,16 @@ class InfoViewController: UIViewController
             let swipeToRight = UISwipeGestureRecognizer(target: self, action: #selector(changePageOnSwipe(_:)))
                 swipeToRight.direction = .left
             self.view.addGestureRecognizer(swipeToRight)
+            
+            view.addSubview(caughtLabel)
+            view.addSubview(caughtSwitch)
+            view.addSubview(shinyLabel)
+            view.addSubview(shinySwitch)
+            view.addSubview(luckyLabel)
+            view.addSubview(luckySwitch)
+            view.addSubview(perfectLabel)
+            view.addSubview(perfectSwitch)
+            
             self.loadSinglePokemon()
         } else {
             self.navigationItem.title = "Multiple Pokemon"
@@ -155,23 +167,24 @@ class InfoViewController: UIViewController
 
     func loadSinglePokemon()
     {
-        self.view.subviews.forEach({ $0.removeFromSuperview() })
+        self.pokemonImageView.removeFromSuperview()
+        self.pokemonShinyImageView.removeFromSuperview()
         self.navigationItem.title = pokemons[0].name
         self.shinyExist = pokemons[0].shinyExists
         
         let pokemonImageID = pokemons[0].id
-        let pokemonImageView = UIImageView(image: UIImage(named: String(pokemonImageID)))
+        pokemonImageView = UIImageView(image: UIImage(named: String(pokemonImageID)))
         pokemonImageView.contentMode = .scaleAspectFit
         pokemonImageView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(pokemonImageView)
+        self.view.insertSubview(pokemonImageView, at: 0)
         pokemonImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         pokemonImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor).isActive = true
         pokemonImageView.heightAnchor.constraint(equalToConstant: 150).isActive = true
         if self.shinyExist {
-            let pokemonShinyImageView = UIImageView(image: UIImage(named: String(pokemonImageID) + "_shiny"))
+            pokemonShinyImageView = UIImageView(image: UIImage(named: String(pokemonImageID) + "_shiny"))
             pokemonShinyImageView.contentMode = .scaleAspectFit
             pokemonShinyImageView.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(pokemonShinyImageView)
+            self.view.insertSubview(pokemonShinyImageView, at: 1)
             pokemonShinyImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
             pokemonShinyImageView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor).isActive = true
             pokemonShinyImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
@@ -181,36 +194,26 @@ class InfoViewController: UIViewController
             pokemonImageView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor).isActive = true
         }
 
-        view.addSubview(caughtLabel)
-        view.addSubview(caughtSwitch)
-        view.addSubview(shinyLabel)
-        view.addSubview(shinySwitch)
-        view.addSubview(luckyLabel)
-        view.addSubview(luckySwitch)
-        view.addSubview(perfectLabel)
-        view.addSubview(perfectSwitch)
-        
         caughtLabel.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
         caughtSwitch.topAnchor.constraint(equalTo: pokemonImageView.bottomAnchor, constant: 20).isActive = true
         
         caughtSwitch.isOn = pokemons[0].caught
         caughtSwitch.addTarget(self, action: #selector(self.caughtSwitchValueDidChange), for: .valueChanged)
-        
         if caughtSwitch.isOn {
+            shinySwitch.isEnabled = true
+            luckySwitch.isEnabled = true
+            perfectSwitch.isEnabled = true
             shinySwitch.isOn = pokemons[0].caughtShiny
-            shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
-            
             luckySwitch.isOn = pokemons[0].haveLucky
-            luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
-            
             perfectSwitch.isOn = pokemons[0].havePerfect
+            shinySwitch.addTarget(self, action: #selector(self.shinySwitchValueDidChange), for: .valueChanged)
+            luckySwitch.addTarget(self, action: #selector(self.luckySwitchValueDidChange), for: .valueChanged)
             perfectSwitch.addTarget(self, action: #selector(self.perfectSwitchValueDidChange), for: .valueChanged)
         } else {
             shinySwitch.isEnabled = false
             luckySwitch.isEnabled = false
             perfectSwitch.isEnabled = false
         }
-        self.setupAutoLayout()
     }
     
     //Using NSBatchUpdateRequest
