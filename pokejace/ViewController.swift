@@ -382,7 +382,7 @@ class ViewController: UIViewController,
                 let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
                     infoViewController.pokemons = [self.filteredData[indexPath.row]]
                     infoViewController.delegate = self
-                    infoViewController.allPokemon = self.data
+                    infoViewController.allPokemon = self.filteredData
                 self.navigationController?.pushViewController(infoViewController, animated: true)
             }
         } else {
