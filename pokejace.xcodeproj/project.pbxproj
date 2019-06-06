@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8699620F22A8FF1F00DDD620 /* HelpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8699620E22A8FF1F00DDD620 /* HelpViewController.swift */; };
 		86A52ECA2227536F00EF9F8C /* InfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A52EC92227536F00EF9F8C /* InfoViewController.swift */; };
 		86A52ECE2228F3B700EF9F8C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86A52ECD2228F3B700EF9F8C /* Assets.xcassets */; };
 		86A52ED12229097800EF9F8C /* PokemonMO.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 86A52ECF2229097800EF9F8C /* PokemonMO.xcdatamodeld */; };
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8699620E22A8FF1F00DDD620 /* HelpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpViewController.swift; sourceTree = "<group>"; };
 		86A52EC92227536F00EF9F8C /* InfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoViewController.swift; sourceTree = "<group>"; };
 		86A52ECD2228F3B700EF9F8C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		86A52ED02229097800EF9F8C /* PokemonList.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PokemonList.xcdatamodel; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 			children = (
 				86DAD3A722224AD600404AB4 /* AppDelegate.swift */,
 				86DAD3A922224AD600404AB4 /* ViewController.swift */,
+				8699620E22A8FF1F00DDD620 /* HelpViewController.swift */,
 				86A52EC92227536F00EF9F8C /* InfoViewController.swift */,
 				86A52ECF2229097800EF9F8C /* PokemonMO.xcdatamodeld */,
 				86A52ECD2228F3B700EF9F8C /* Assets.xcassets */,
@@ -262,6 +265,7 @@
 				86A52ED12229097800EF9F8C /* PokemonMO.xcdatamodeld in Sources */,
 				86A52ECA2227536F00EF9F8C /* InfoViewController.swift in Sources */,
 				86DAD3A822224AD600404AB4 /* AppDelegate.swift in Sources */,
+				8699620F22A8FF1F00DDD620 /* HelpViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

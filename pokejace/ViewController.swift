@@ -243,6 +243,12 @@ class ViewController: UIViewController,
         self.myCollectionView.reloadData()
         print(longPressPokemon)
     }
+    
+    @objc func helpButtonAction()
+    {
+        
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -255,7 +261,9 @@ class ViewController: UIViewController,
         items.append(doneBtn)
         //items.append( UIBarButtonItem(barButtonSystemItem: "Shiny", target: self, action: nil) )
         toolbar.setItems(items, animated: false)
-            toolbar.sizeToFit()
+        toolbar.sizeToFit()
+        
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Help", style: .done, target: self, action: #selector(helpButtonAction))
         
         self.searchBar.inputAccessoryView = toolbar
         
@@ -269,12 +277,22 @@ class ViewController: UIViewController,
         if (fetchRes.count == 0) {
             self.parsePokemonListJSON(appDelegate: appDelegate, managedContext: managedContext)
         } else {
-            self.checkForUpdatedShinies()
+            let mapped3 = self.checkForUpdatedShinies()
             for data in fetchRes as! [NSManagedObject] {
                 //print(data.value(forKey: "name") as! String)
                 if (data.value(forKey: "hasImage") as! Bool) {
                     self.data.append(Pokemon(id: data.value(forKey: "id") as! Int, name: data.value(forKey: "name") as! String, hasImage: true, caught: data.value(forKey: "caught") as! Bool, shinyExists: data.value(forKey: "shinyExists") as! Bool, caughtShiny: data.value(forKey: "caughtShiny") as! Bool, haveLucky: data.value(forKey: "haveLucky") as! Bool, havePerfect: data.value(forKey: "havePerfect") as! Bool))
                 }
+            }
+            for i in 0 ..< mapped3.count - 2 {
+                if (mapped3[i] < 808) {
+                    self.data[mapped3[i] - 1].shinyExists = true
+                }
+            }
+            do {
+                try managedContext.save()
+            } catch let error as NSError {
+                print("Could not save. \(error), \(error.userInfo)")
             }
         }
         self.filteredData = self.data
