@@ -28,7 +28,6 @@ class ViewController: UIViewController,
                       UISearchBarDelegate,
                       UICollectionViewDataSource
 {
-    
     var data = [Pokemon]()
     var pokemonNames = [String]()
     var longPressPokemon = [Pokemon]()
@@ -133,6 +132,20 @@ class ViewController: UIViewController,
             return []
         }
     }
+    
+    /*
+    override var shouldAutorotate: Bool {
+        return false
+    }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+    
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        return .portrait
+    }
+     */
     
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -351,6 +364,7 @@ class ViewController: UIViewController,
                 let infoViewController: InfoViewController = InfoViewController(nibName: nil, bundle: nil)
                     infoViewController.pokemons = [self.filteredData[indexPath.row]]
                     infoViewController.delegate = self
+                    infoViewController.allPokemon = self.data
                 self.navigationController?.pushViewController(infoViewController, animated: true)
             }
         } else {
